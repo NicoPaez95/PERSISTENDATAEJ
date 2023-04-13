@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-
+using System.IO;
 public class MainManager : MonoBehaviour
 {
     public Brick BrickPrefab;
@@ -18,10 +18,22 @@ public class MainManager : MonoBehaviour
     
     private bool m_GameOver = false;
 
-    
+    public Text NameandHighscore;
+
+    public SaveAndLoad mydatapers;
+
+    private void Awake()
+    {
+        mydatapers.Load();
+    }
+
     // Start is called before the first frame update
     void Start()
     {
+       
+
+        NameandHighscore.text= "Best Score:"+MainMenuManger.mainMenuMangerInstance.namePlayer +":"+mydatapers.score;
+
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
         
@@ -70,7 +82,62 @@ public class MainManager : MonoBehaviour
 
     public void GameOver()
     {
+
+        if (mydatapers.score<m_Points)
+        {
+            mydatapers.score = m_Points;
+        }
+
+        mydatapers.name = MainMenuManger.mainMenuMangerInstance.namePlayer;
+
+        mydatapers.Save();
+
         m_GameOver = true;
         GameOverText.SetActive(true);
     }
+
+    
+
+    [System.Serializable]
+    public class SaveAndLoad
+    {
+        
+        public int score;
+
+        public string name;
+        public void Save()
+        {
+            SaveAndLoad myData = new SaveAndLoad();
+
+            myData.score = score;
+
+            myData.name = name;
+
+            var json = JsonUtility.ToJson(myData);
+
+            File.WriteAllText(Application.persistentDataPath + "/savefile.json", json);
+        }
+
+        public void Load()
+        {
+            string path = Application.persistentDataPath + "/savefile.json";
+
+            if (File.Exists(path))
+            {
+              
+               var json = File.ReadAllText(path);
+
+                SaveAndLoad mydata = JsonUtility.FromJson<SaveAndLoad>(json);
+
+                score = mydata.score;
+
+                name = mydata.name;
+
+            }
+
+            
+        }
+    }
+
 }
+
